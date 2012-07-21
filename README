@@ -23,7 +23,7 @@ The matrix can be generated or read from file. Right hand side is generated auto
 
 Using:
 1. Makefile in src directory
-2. ./a (matrix_size) (block_size) [matrix input file]
+2. ./a (matrix_size) (block_size) (threads count) [matrix input file]
 
 
 Copyright 2011-2012 Alexander Lapin
