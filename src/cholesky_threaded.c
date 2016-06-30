@@ -233,7 +233,7 @@ int cholesky(
     synchronize(total_threads);
 
     if (error)
-      return;
+      return -1;
 
     memcpy(md, me, pij_n * pij_n * sizeof (double));
 
