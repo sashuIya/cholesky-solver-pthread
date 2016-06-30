@@ -28,7 +28,7 @@ configure_dirs:
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJS_NAMES)
-	$(CC) $(LDFLAGS) $(OBJS) -o $(BUILD_DIR)/$@
+	$(CC) $(OBJS) $(LDFLAGS) -o $(BUILD_DIR)/$@
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $(BUILD_DIR)/$@
