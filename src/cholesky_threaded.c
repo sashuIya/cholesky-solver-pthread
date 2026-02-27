@@ -3,7 +3,6 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "synchronize.h"
 #include "array_op.h"
 #include "cholesky_threaded.h"
 #include "timer.h"
@@ -13,14 +12,14 @@ void *cholesky_threaded(void *ptr)
   double timer = get_time_pthread();
   CholeskyArgs *pa = (CholeskyArgs *)ptr;
 
-  synchronize(pa->total_threads);
+  pthread_barrier_wait(pa->barrier);
 
   cholesky(pa->matrix_size, pa->matrix, pa->diagonal, pa->workspace, 
-      pa->block_size, pa->thread_id, pa->total_threads);
+      pa->block_size, pa->thread_id, pa->total_threads, pa->barrier);
 
   printf("Thread %d CPU time: %.2lf\n", pa->thread_id, (get_time_pthread()-timer)/(1000.0*1000.0*1000.0)); 
 
-  synchronize(pa->total_threads);
+  pthread_barrier_wait(pa->barrier);
 
   return 0;
 }
@@ -92,7 +91,7 @@ int cholesky(
         return -1;
     }
 
-    synchronize(total_threads);
+    pthread_barrier_wait(barrier);
 
     pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
     for (j = 0; j < pij_n * pij_n; ++j)
@@ -148,7 +147,8 @@ int cholesky(
     double *workspace,
     int block_size,
     int thread_id,
-    int total_threads
+    int total_threads,
+    pthread_barrier_t *barrier
     )
 {
   static int error = 0;
@@ -230,7 +230,7 @@ int cholesky(
       }
     }
 
-    synchronize(total_threads);
+    pthread_barrier_wait(barrier);
 
     if (error)
       return -1;
@@ -249,7 +249,7 @@ int cholesky(
       mult_done++;
     }
 
-    synchronize(total_threads);
+    pthread_barrier_wait(barrier);
   }
 
 //  printf("Thread %d has done %d block multiplications\n", thread_id, mult_done);

@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
 
   CholeskyArgs *cholesky_args;
   pthread_t *threads;
+  pthread_barrier_t barrier;
 
   double *matrix;
   double *diagonal;
@@ -83,6 +84,12 @@ int main(int argc, char *argv[])
       return -2;
     }                        
 
+    if (pthread_barrier_init(&barrier, NULL, total_threads))
+    {
+      printf("Cannot initialize barrier\n");
+      return -2;
+    }
+
     for (i = 0; i < total_threads; ++i)
     {
       cholesky_args[i].matrix_size = matrix_size;
@@ -92,6 +99,7 @@ int main(int argc, char *argv[])
       cholesky_args[i].block_size = block_size;
       cholesky_args[i].thread_id = i;
       cholesky_args[i].total_threads = total_threads;
+      cholesky_args[i].barrier = &barrier;
     }
 
     fill_vector_answer(matrix_size, vector_answer);
@@ -264,6 +272,7 @@ int main(int argc, char *argv[])
   free(matrix);
   free(cholesky_args);
   free(threads);
+  pthread_barrier_destroy(&barrier);
 
   return 0;
 }

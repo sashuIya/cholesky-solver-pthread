@@ -1,6 +1,8 @@
 #ifndef CHOLESKY_THREADED 
 #define CHOLESKY_THREADED
 
+#include <pthread.h>
+
 typedef struct _CholeskyArgs
 {
   int matrix_size; 
@@ -10,6 +12,7 @@ typedef struct _CholeskyArgs
   int block_size;
   int thread_id;
   int total_threads;
+  pthread_barrier_t *barrier;
 } CholeskyArgs;
 
 void *cholesky_threaded(void *ptr);
@@ -21,7 +24,8 @@ int cholesky(
     double *workspace,
     int block_size,
     int thread_id,
-    int total_threads
+    int total_threads,
+    pthread_barrier_t *barrier
 );
 
 #endif
