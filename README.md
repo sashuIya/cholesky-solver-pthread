@@ -1,61 +1,70 @@
-Overview
---------
+# Multi-threaded Block Cholesky Solver
 
-This program is a multi-threaded solver for symmetric linear systems. It can
-be used to obtain both the answer and residual. It's based on the block
-Cholesky decomposition method. This version uses the `pthread` library.
+A high-performance, multi-threaded solver for symmetric linear systems ($Ax = b$) using the Block Cholesky decomposition method. This project was originally developed in 2011 and has been modernized to follow contemporary C engineering standards.
 
-Several features were implemented to speed up the program:
+## Overview
 
-1. Block matrix format that maximises the cache usage. For example, a matrix
-   of the form
+This program implements the block Cholesky method to obtain both the solution vector $x$ and the residual. It leverages the `pthread` library for parallel execution and employs several optimization techniques:
 
-        a11 a12 ... a1n
-        a21 a22 ... a2n
-        ...
-        an1 an2 ... ann
+1.  **Block Matrix Storage**: Maximizes cache locality by representing the matrix as a grid of blocks.
+2.  **Loop Unrolling**: Critical paths in matrix operations are unrolled to improve instruction-level parallelism.
+3.  **Modern Concurrency**: Uses `pthread_barrier_t` for efficient thread synchronization and ensures re-entrant execution.
 
-    is represented as a block matrix
+## Theory
 
-        A11 A12 ... A1m
-        A21 A22 ... A2m
-        ...
-        Am1 Am2 ... Amm
+The Cholesky method decomposes a symmetric, positive-definite matrix $A$ into $A = R^T D R$, where:
+-   $R$ is an upper triangular matrix with positive diagonal elements.
+-   $D$ is a diagonal matrix with elements equal to $\pm 1$.
 
-    where each block `Aij` is a matrix of `(block_size, block_size)` sizes.
+### Block Algorithm
+For a block matrix $A = (A_{ij})$, the decomposition formulas are:
+-   **Off-diagonal blocks**: $R_{ij} = D_i^{-1} (R_{ii}^T)^{-1} \cdot (A_{ij} - \sum_{k=1}^{i-1} R_{ki}^T D_k R_{kj})$
+-   **Diagonal blocks**: $R_{ii}^T D_i R_{ii} = A_{ii} - \sum_{k=1}^{i-1} R_{ki}^T D_k R_{ki}$
 
-    Some docs about the block algorithm can be found in the `doc` folder.
+After decomposition, the system is solved in two stages:
+1.  Solve $D R y = b$ (Forward substitution)
+2.  Solve $R^T x = y$ (Backward substitution)
 
-2. Loops are unrolled by 8 elements.
+## Parallel Strategy
 
-The matrix can be generated or read from a file. The right-hand side is
-generated automatically by calculating the answer and then multiplying the
-matrix by the answer vector.
+The workload is distributed across $p$ threads by partitioning the block updates. On each step $i$ of the outer loop:
+-   Threads calculate their assigned blocks $A_{ij}$ in parallel.
+-   A synchronization barrier ensures the diagonal block $A_{ii}$ is fully updated before the inversion starts.
+-   Thread 0 handles the Cholesky decomposition and inversion of the diagonal block.
+-   Another barrier ensures all threads have access to the inverted diagonal block before proceeding to the next row update.
 
-Usage
------
+## Getting Started
 
-1. Makefile in `src` directory
-2. `./a (matrix_size) (block_size) (threads count) [matrix input file]`
+### Prerequisites
+- GCC or Clang
+- POSIX-compliant environment (Linux/macOS)
+- Python 3 (for benchmarking)
 
-License
--------
+### Building
+```bash
+cd src
+make
+```
+The executable `a` will be placed in the `build/` directory.
 
-Copyright 2011-2012 Alexander Lapin
+### Usage
+```bash
+./build/a <matrix_size> <block_size> <thread_count> [input_file]
+```
+-   `matrix_size`: Total dimension of the matrix ($N$).
+-   `block_size`: Dimension of the sub-blocks ($M$).
+-   `thread_count`: Number of worker threads.
+-   `input_file`: (Optional) Path to a file containing the matrix elements. If omitted, a test matrix is generated automatically.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+## Benchmarking
+A Python tool is provided to verify correctness and measure performance:
+```bash
+python3 benchmark.py --save results.json
+```
+To check for regressions against the baseline:
+```bash
+python3 benchmark.py --compare baseline.json
+```
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-Contacts
---------
-Alexander Lapin, <lapinra@gmail.com>
+## License
+Copyright 2011-2012 Alexander Lapin. Released under the GNU General Public License v3.0.
