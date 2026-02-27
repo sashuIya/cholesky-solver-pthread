@@ -24,7 +24,7 @@ int fill_matrix(int n, double* matrix, double* vector_answer, double* rhs) {
     }
 
     for (j = i; j < n; j++) {
-      matrix[k + j - i] = fabs(n - j);
+      matrix[k + j - i] = abs(n - j);
       rhs[i] += matrix[k + j - i] * vector_answer[j];
     }
   }
