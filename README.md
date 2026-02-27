@@ -55,7 +55,7 @@ The executable `a` will be placed in the `build/` directory.
 
 ### Usage
 ```bash
-./build/a <matrix_size> <block_size> <thread_count> [input_file]
+./build/cholesky_solver <matrix_size> <block_size> <thread_count> [input_file]
 ```
 -   `matrix_size`: Total dimension of the matrix ($N$).
 -   `block_size`: Dimension of the sub-blocks ($M$).

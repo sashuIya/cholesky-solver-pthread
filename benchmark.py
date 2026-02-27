@@ -6,7 +6,7 @@ import argparse
 from typing import Dict, List, Optional
 
 class BenchmarkRunner:
-    def __init__(self, executable_path: str = "./build/a"):
+    def __init__(self, executable_path: str = "./build/cholesky_solver"):
         self.executable_path = executable_path
 
     def run_config(self, n: int, m: int, threads: int) -> Dict:

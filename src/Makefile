@@ -1,37 +1,38 @@
-# Root directory for project
-ROOT_DIR=$(shell pwd)
+# Compiler and flags
+CC = gcc
+CFLAGS = -O3 -Wall -Wextra
+LDFLAGS = 
+LDLIBS = -lm -lpthread -lrt
 
-# BUILD_ROOT is directory with object files
-# BUILD_DIR is where to build
-ifndef BUILD_ROOT
-  BUILD_ROOT=$(ROOT_DIR)
-  BUILD_DIR=$(BUILD_ROOT)/../build
-else
-  BUILD_DIR=$(BUILD_ROOT)/../build
-endif
+# Project structure
+BUILD_DIR = ../build
+EXECUTABLE = cholesky_solver
 
-CC=gcc
-CFLAGS=-c -O3 
-LDFLAGS=-lm -lpthread -lrt
-SOURCES=main.c array_op.c timer.c array_io.c cholesky_threaded.c
-EXECUTABLE=a
-OBJS_NAMES=$(SOURCES:.c=.o)
-OBJS=$(patsubst %,$(BUILD_DIR)/%,$(OBJS_NAMES))
+# Source and object files
+SOURCES = main.c array_op.c timer.c array_io.c cholesky_threaded.c
+OBJS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 
-ALL: configure_dirs all
+# Default target
+all: $(BUILD_DIR) $(BUILD_DIR)/$(EXECUTABLE)
 
-configure_dirs:
-	@if [ ! -d $(BUILD_DIR) ] ; then \
-	  mkdir -p $(BUILD_DIR) ; \
-	fi
+# Create build directory
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-all: $(SOURCES) $(EXECUTABLE)
+# Link the executable
+$(BUILD_DIR)/$(EXECUTABLE): $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) $(LDLIBS) -o $@
 
-$(EXECUTABLE): $(OBJS_NAMES)
-	$(CC) $(OBJS) $(LDFLAGS) -o $(BUILD_DIR)/$@
+# Compile source files
+$(BUILD_DIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-.c.o:
-	$(CC) $(CFLAGS) $< -o $(BUILD_DIR)/$@
-
+# Clean build artifacts
 clean:
 	rm -rf $(BUILD_DIR)
+
+# Format code using project settings
+format:
+	clang-format -i *.c *.h
+
+.PHONY: all clean format
