@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
   CholeskyArgs *cholesky_args;
   pthread_t *threads;
   pthread_barrier_t barrier;
+  int error_flag = 0;
 
   double *matrix;
   double *diagonal;
@@ -100,6 +101,7 @@ int main(int argc, char *argv[])
       cholesky_args[i].thread_id = i;
       cholesky_args[i].total_threads = total_threads;
       cholesky_args[i].barrier = &barrier;
+      cholesky_args[i].error = &error_flag;
     }
 
     fill_vector_answer(matrix_size, vector_answer);

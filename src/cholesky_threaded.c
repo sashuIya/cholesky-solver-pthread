@@ -12,14 +12,13 @@ void *cholesky_threaded(void *ptr)
   double timer = get_time_pthread();
   CholeskyArgs *pa = (CholeskyArgs *)ptr;
 
-  pthread_barrier_wait(pa->barrier);
-
-  cholesky(pa->matrix_size, pa->matrix, pa->diagonal, pa->workspace, 
-      pa->block_size, pa->thread_id, pa->total_threads, pa->barrier);
-
-  printf("Thread %d CPU time: %.2lf\n", pa->thread_id, (get_time_pthread()-timer)/(1000.0*1000.0*1000.0)); 
-
-  pthread_barrier_wait(pa->barrier);
+    pthread_barrier_wait(pa->barrier);
+  
+    cholesky(pa->matrix_size, pa->matrix, pa->diagonal, pa->workspace, 
+        pa->block_size, pa->thread_id, pa->total_threads, pa->barrier, pa->error);
+  
+    printf("Thread %d CPU time: %.2lf\n", pa->thread_id, (get_time_pthread()-timer)/(1000.0*1000.0*1000.0));
+    pthread_barrier_wait(pa->barrier);
 
   return 0;
 }
@@ -148,11 +147,10 @@ int cholesky(
     int block_size,
     int thread_id,
     int total_threads,
-    pthread_barrier_t *barrier
+    pthread_barrier_t *barrier,
+    int *error
     )
 {
-  static int error = 0;
-
   int i, j, k, t;
   int pij_n, pij_m;
   int pki_n, pki_m;
@@ -218,21 +216,21 @@ int cholesky(
       if (cholesky_for_block(pij_n, mb, diagonal+i))
       {
         printf("Cholesky method with this block size cannot be applied\n");
-        error = 1;
+        *error = 1;
       }
 
       cpy_block_to_diagonal_block(matrix, i, matrix_size, pij_n, mb);
 
-      if (!error && inverse_upper_triangle_block_and_diagonal(pij_n, mb, diagonal+i, me))
+      if (!(*error) && inverse_upper_triangle_block_and_diagonal(pij_n, mb, diagonal+i, me))
       {
         printf("Cholesky method with this block size cannot be applied\n");
-        error = 2;
+        *error = 2;
       }
     }
 
     pthread_barrier_wait(barrier);
 
-    if (error)
+    if (*error)
       return -1;
 
     memcpy(md, me, pij_n * pij_n * sizeof (double));
