@@ -75,15 +75,42 @@ def run_suite(runner: BenchmarkRunner, configs: List[Dict]) -> List[Dict]:
         results.append(res)
     return results
 
+def compare_results(baseline: List[Dict], current: List[Dict], tolerance: float = 1e-12):
+    print("\n--- Regression Report ---")
+    all_pass = True
+    for b, c in zip(baseline, current):
+        if not c['success']:
+            print(f"FAIL: Configuration N={c['n']} M={c['m']} T={c['threads']} failed to run.")
+            all_pass = False
+            continue
+        
+        err_diff = abs(b['error'] - c['error'])
+        if err_diff > tolerance:
+            print(f"REGRESSION: N={c['n']} M={c['m']} T={c['threads']} - Error diff: {err_diff:.2e} (Baseline: {b['error']:.2e}, Current: {c['error']:.2e})")
+            all_pass = False
+        else:
+            time_ratio = c['time_s'] / b['time_s'] if b.get('time_s', 0) > 0 else 1.0
+            status = "PASS"
+            if time_ratio > 1.2: status = "PASS (SLOWER)"
+            elif time_ratio < 0.8: status = "PASS (FASTER)"
+            
+            speedup = c['cpu_time_s'] / c['time_s'] if c['time_s'] > 0 else 1.0
+            print(f"{status}: N={c['n']} M={c['m']} T={c['threads']} (Error: {c['error']:.2e}, Wall: {c['time_s']:.2f}s, Speedup: {speedup:.2f}x)")
+
+    if all_pass:
+        print("\nAll tests passed successfully.")
+    else:
+        print("\nSome tests failed or showed regressions.")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--save", help="Save results to file")
+    parser.add_argument("--compare", help="Compare against baseline file")
     args = parser.parse_args()
 
     runner = BenchmarkRunner()
     
     suite = []
-    # Configure N=5000, M=64, Threads 1 to 5
     for threads in [1, 2, 3, 4, 5]:
         suite.append({"n": 5000, "m": 64, "threads": threads})
     
@@ -93,3 +120,11 @@ if __name__ == "__main__":
         with open(args.save, "w") as f:
             json.dump(results, f, indent=2)
         print(f"\nResults saved to {args.save}")
+        
+    if args.compare:
+        if os.path.exists(args.compare):
+            with open(args.compare, "r") as f:
+                baseline = json.load(f)
+            compare_results(baseline, results)
+        else:
+            print(f"Baseline file {args.compare} not found.")

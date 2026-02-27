@@ -11,6 +11,9 @@
 
 const int WORKSPACE_MATRIX_COUNT = 4;
 
+// Entry point for the block Cholesky solver.
+//
+// Usage: ./a <matrix_size> <block_size> <thread_count> [matrix_file]
 int main(int argc, char* argv[]) {
   int matrix_size, block_size, total_threads;
   int i;
@@ -33,7 +36,7 @@ int main(int argc, char* argv[]) {
 
   timer_start();
 
-  /* input: ./a.out n m [file] */
+  // Parse command line arguments.
   if (argc == 4 || argc == 5) {
     matrix_size = atoi(argv[1]);
     block_size = atoi(argv[2]);
@@ -42,28 +45,28 @@ int main(int argc, char* argv[]) {
     else
       total_threads = atoi(argv[4]);
 
-    if (matrix_size == 0 || block_size == 0 || total_threads == 0 ||
+    if (matrix_size <= 0 || block_size <= 0 || total_threads <= 0 ||
         total_threads > 128 || block_size > matrix_size) {
-      printf("Wrong input\n");
+      printf("Wrong input parameters\n");
       return -1;
     }
 
-    len = 0;
+    // Allocate a single large buffer for all matrix-related arrays to
+    // maximize memory contiguousness.
     len = total_threads * WORKSPACE_MATRIX_COUNT * block_size * block_size +
-          2 * block_size * block_size  // me
-          + ((matrix_size * (matrix_size + 1)) / 2) + 5 * matrix_size;
+          2 * block_size * block_size + ((matrix_size * (matrix_size + 1)) / 2) +
+          5 * matrix_size;
     len *= sizeof(double);
 
-    if (!(matrix = (double*)malloc(len)))  // note to delete "2 * " !!!
-    {
+    if (!(matrix = (double*)malloc(len))) {
       printf("Not enough memory\n");
       return -2;
     }
 
     memset(matrix, 0, len);
 
-    diagonal = matrix + ((matrix_size * (matrix_size + 1)) /
-                         2);  // note to delete 2x !!!
+    // Calculate offsets into the large memory buffer.
+    diagonal = matrix + ((matrix_size * (matrix_size + 1)) / 2);
     vector_answer = diagonal + matrix_size;
     vector = vector_answer + matrix_size;
     exact_rhs = vector + matrix_size;
@@ -73,19 +76,26 @@ int main(int argc, char* argv[]) {
     if (!(cholesky_args =
               (CholeskyArgs*)malloc(total_threads * sizeof(CholeskyArgs)))) {
       printf("Not enough memory\n");
+      free(matrix);
       return -2;
     }
 
     if (!(threads = (pthread_t*)malloc(total_threads * sizeof(pthread_t)))) {
       printf("Not enough memory\n");
+      free(matrix);
+      free(cholesky_args);
       return -2;
     }
 
     if (pthread_barrier_init(&barrier, NULL, total_threads)) {
       printf("Cannot initialize barrier\n");
+      free(matrix);
+      free(cholesky_args);
+      free(threads);
       return -2;
     }
 
+    // Initialize thread arguments.
     for (i = 0; i < total_threads; ++i) {
       cholesky_args[i].matrix_size = matrix_size;
       cholesky_args[i].matrix = matrix;
@@ -100,17 +110,16 @@ int main(int argc, char* argv[]) {
 
     fill_vector_answer(matrix_size, vector_answer);
 
+    // Load or generate matrix data.
     if (argc == 4) {
       if (fill_matrix(matrix_size, matrix, vector_answer, rhs)) {
         printf("Cannot fill matrix\n");
-        return -3;
+        goto cleanup;
       }
-    }
-
-    if (argc == 5) {
+    } else if (argc == 5) {
       if (read_matrix(matrix_size, &matrix, vector_answer, rhs, argv[3])) {
         printf("Cannot read matrix\n");
-        return -4;
+        goto cleanup;
       }
     }
 
@@ -119,41 +128,28 @@ int main(int argc, char* argv[]) {
       vector[i] = rhs[i];
     }
   } else {
-    printf("Wrong input, try again\n");
+    printf("Usage: %s <n> <m> <threads> [file]\n", argv[0]);
     return 0;
   }
 
   print_time("on initialization");
 
-  /*
-     if (matrix_size < 10)
-     {
-     printf("matrix:\n");
-     printf_matrix(matrix_size, matrix);
-
-     printf("\n");
-     int i;
-     for (i = 0; i < matrix_size; ++i)
-     printf("%.3f ", c[i]);
-     printf("\n\n");
-     }
-     */
   if (matrix_size < 15) {
     printf("matrix A:\n");
     printf_matrix(matrix_size, matrix);
-
     printf("\nrhs:\n");
     for (i = 0; i < matrix_size; ++i) printf("%.10f ", rhs[i]);
     printf("\n\n");
   }
 
+  // Spawn worker threads.
   for (i = 1; i < total_threads; ++i) {
     if (pthread_create(threads + i, 0, cholesky_threaded, cholesky_args + i)) {
       fprintf(stderr, "Cannot create thread #%d\n", i);
     }
   }
 
-  //    cholesky_threaded(cholesky_args + 0);
+  // Thread 0 also performs work.
   cholesky_threaded(cholesky_args + 0);
 
   for (i = 1; i < total_threads; ++i) {
@@ -162,38 +158,24 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  /*
-     if (cholesky(matrix_size, matrix, diagonal, workspace, block_size))
-     {
-     printf("Cannot apply Cholesky method for this matrix\n");
-     free(matrix);
-
-     return -10;
-     }
-     */
-
   print_full_time("on cholesky decomposition");
 
+  // Solve the resulting triangular systems.
   if (solve_lower_triangle_matrix_system(matrix_size, matrix, vector, workspace,
                                          block_size)) {
     printf("Cannot solve R^T y = b part\n");
-    free(matrix);
-
-    return -11;
+    goto cleanup;
   }
 
   if (solve_upper_triangle_matrix_diagonal_system(
           matrix_size, matrix, diagonal, vector, workspace, block_size)) {
     printf("Cannot solve D R x = y part\n");
-    free(matrix);
-
-    return -12;
+    goto cleanup;
   }
 
   if (matrix_size < 15) {
     printf("cholesky decomposition:\n");
     printf_matrix(matrix_size, matrix);
-
     printf("\ndiagonal:\n");
     for (i = 0; i < matrix_size; i++) printf("%.1f ", diagonal[i]);
     printf("\n\n");
@@ -201,22 +183,15 @@ int main(int argc, char* argv[]) {
 
   print_time("on algorithm");
 
+  // Verify results by calculating error and residual.
   residual = 0;
   rhs_norm = 0;
   answer_error = 0;
 
   if (argc == 4) {
-    if (fill_matrix(matrix_size, matrix, vector, rhs)) {
-      printf("Cannot fill matrix\n");
-      return -3;
-    }
-  }
-
-  if (argc == 5) {
-    if (read_matrix(matrix_size, &matrix, vector, rhs, argv[3])) {
-      printf("Cannot read matrix\n");
-      return -4;
-    }
+    fill_matrix(matrix_size, matrix, vector, rhs);
+  } else if (argc == 5) {
+    read_matrix(matrix_size, &matrix, vector, rhs, argv[3]);
   }
 
   for (i = 0; i < matrix_size; ++i) {
@@ -230,20 +205,14 @@ int main(int argc, char* argv[]) {
   rhs_norm = sqrt(rhs_norm);
   answer_error = sqrt(answer_error);
 
-  /*
-     printf("Answer:\n");
-     for (i = 0; i < matrix_size && i < 5; ++i)
-     printf("%.10lf ", vector[i]);
-     printf("\n\n");
-     */
+  printf("\n");
+  printf("Error: %11.5le ; Residual: %11.5le (%11.5le)\n", answer_error,
+         residual, residual / rhs_norm);
+  printf("Total time in seconds: %.2f\n", WallTimerGet() / 100.0);
+  printf("CPU time in seconds: %.2f\n", TimerGet() / 100.0);
   printf("\n");
 
-    printf("Error: %11.5le ; Residual: %11.5le (%11.5le)\n", answer_error, residual, residual / rhs_norm);
-  
-    printf("Total time in seconds: %.2f\n", (WallTimerGet() - 0) / 100.0);
-    printf("CPU time in seconds: %.2f\n", (TimerGet() - 0) / 100.0);
-    printf("\n");
-  
+cleanup:
   free(matrix);
   free(cholesky_args);
   free(threads);

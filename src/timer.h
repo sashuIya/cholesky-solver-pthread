@@ -1,30 +1,45 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-/* Запустить таймер */
+// Starts the global timer for both CPU and wall clock measurements.
 void timer_start(void);
-/* Напечатать время от старта и от последнего вызова с заголовком MESSAGE */
+
+// Prints the elapsed CPU time since start and since the previous call.
+// message: A label to include in the printed output.
 void print_time(const char* message);
-/* Напечатать время от старта и от последнего вызова с заголовком MESSAGE */
+
+// Prints both CPU and wall clock time since start and since the previous call.
+// message: A label to include in the printed output.
 void print_full_time(const char* message);
 
-/* Запустить таймер (то же, что timer_start) */
+// Legacy wrapper for timer_start.
 void TimerStart(void);
-/* Напечатать время от старта и от последнего вызова с заголовком MESSAGE.
-   Возвращает время от предыдущего вызова. */
+
+// Prints elapsed CPU time and returns the time since the previous call.
+// message: A label to include in the printed output.
+// Returns: CPU time in 1/100ths of a second since the previous call.
 long PrintTime(const char* message);
-/* Напечатать время от старта и от последнего вызова с заголовком MESSAGE.
-   Возвращает время от предыдущего вызова и общее время. */
+
+// Prints elapsed CPU time and returns both the stage and total time.
+// message: A label to include in the printed output.
+// pTotalTime: Pointer to store the total CPU time in 1/100ths of a second.
+// Returns: CPU time in 1/100ths of a second since the previous call.
 long int PrintTimeT(const char* message, long int* pTotalTime);
-/* Вернуть время в сотых долях секунды (от начала процесса). */
+
+// Gets the total elapsed CPU time since the timer was started.
+// Returns: CPU time in 1/100ths of a second.
 long TimerGet(void);
-/* Вернуть астрономическое время в сотых долях секунды. */
+
+// Gets the total elapsed wall clock time since the timer was started.
+// Returns: Wall clock time in 1/100ths of a second.
 long WallTimerGet(void);
 
-/* Вывести в строку время текущее время работы */
+// Formats the current total CPU time into a HH:MM:SS.CC string.
+// buffer: A character buffer to store the formatted string.
 void sprint_time(char* buffer);
 
-/* CPU for pthread in nanosec */
+// Gets the precise CPU time for the calling thread.
+// Returns: Thread CPU time in nanoseconds.
 double get_time_pthread(void);
 
-#endif /* TIMER_H */
+#endif  // TIMER_H
