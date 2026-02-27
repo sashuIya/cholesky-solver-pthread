@@ -18,6 +18,8 @@ long PrintTime(const char* message);
 long int PrintTimeT(const char* message, long int* pTotalTime);
 /* Вернуть время в сотых долях секунды (от начала процесса). */
 long TimerGet(void);
+/* Вернуть астрономическое время в сотых долях секунды. */
+long WallTimerGet(void);
 
 /* Вывести в строку время текущее время работы */
 void sprint_time(char* buffer);
