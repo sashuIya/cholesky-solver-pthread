@@ -18,7 +18,8 @@ class BenchmarkRunner:
             
             # Parsing logic
             metrics_match = re.search(r"Error:\s+([\d.e+-]+)\s+;\s+Residual:\s+([\d.e+-]+)\s+\(([\d.e+-]+)\)", output)
-            time_match = re.search(r"Total time in seconds:\s+([\d.]+)", output)
+            wall_time_match = re.search(r"Total time in seconds:\s+([\d.]+)", output)
+            cpu_time_match = re.search(r"CPU time in seconds:\s+([\d.]+)", output)
 
             res = {
                 "n": n,
@@ -30,8 +31,10 @@ class BenchmarkRunner:
                 "residual_rel": float(metrics_match.group(3)) if metrics_match else None,
             }
             
-            if time_match:
-                res["time_s"] = float(time_match.group(1))
+            if wall_time_match:
+                res["time_s"] = float(wall_time_match.group(1))
+            if cpu_time_match:
+                res["cpu_time_s"] = float(cpu_time_match.group(1))
             
             return res
         except subprocess.CalledProcessError as e:
@@ -50,7 +53,7 @@ def run_suite(runner: BenchmarkRunner, configs: List[Dict]) -> List[Dict]:
         print(f"Running N={conf['n']}, M={conf['m']}, Threads={conf['threads']}... ", end="", flush=True)
         res = runner.run_config(conf['n'], conf['m'], conf['threads'])
         if res['success']:
-            print(f"Done. Time: {res.get('time_s', 0):.2f}s, Error: {res['error']:.2e}")
+            print(f"Done. Wall: {res.get('time_s', 0):.2f}s, CPU: {res.get('cpu_time_s', 0):.2f}s, Error: {res['error']:.2e}")
         else:
             print(f"FAILED. Exit code: {res.get('exit_code')}")
         results.append(res)
@@ -74,7 +77,10 @@ def compare_results(baseline: List[Dict], current: List[Dict], tolerance: float 
             status = "PASS"
             if time_ratio > 1.2: status = "PASS (SLOWER)"
             elif time_ratio < 0.8: status = "PASS (FASTER)"
-            print(f"{status}: N={c['n']} M={c['m']} T={c['threads']} (Error: {c['error']:.2e}, Time: {c['time_s']:.2f}s)")
+            
+            # Speedup calc
+            speedup = c['cpu_time_s'] / c['time_s'] if c['time_s'] > 0 else 1.0
+            print(f"{status}: N={c['n']} M={c['m']} T={c['threads']} (Error: {c['error']:.2e}, Wall: {c['time_s']:.2f}s, Speedup: {speedup:.2f}x)")
 
     if all_pass:
         print("\nAll tests passed successfully.")
@@ -89,7 +95,7 @@ if __name__ == "__main__":
 
     runner = BenchmarkRunner()
     
-    # Define a standard suite with a 5s+ test case (N=5000)
+    # Standard suite
     suite = [
         {"n": 1000, "m": 64, "threads": 1},
         {"n": 1000, "m": 64, "threads": 4},
