@@ -40,10 +40,11 @@ int main(int argc, char* argv[]) {
   if (argc == 4 || argc == 5) {
     matrix_size = atoi(argv[1]);
     block_size = atoi(argv[2]);
-    if (argc == 4)
+    if (argc == 4) {
       total_threads = atoi(argv[3]);
-    else
+    } else {
       total_threads = atoi(argv[4]);
+    }
 
     if (matrix_size <= 0 || block_size <= 0 || total_threads <= 0 || total_threads > 128 ||
         block_size > matrix_size) {
@@ -136,7 +137,9 @@ int main(int argc, char* argv[]) {
     printf("matrix A:\n");
     printf_matrix(matrix_size, matrix);
     printf("\nrhs:\n");
-    for (i = 0; i < matrix_size; ++i) printf("%.10f ", rhs[i]);
+    for (i = 0; i < matrix_size; ++i) {
+      printf("%.10f ", rhs[i]);
+    }
     printf("\n\n");
   }
 
@@ -174,7 +177,9 @@ int main(int argc, char* argv[]) {
     printf("cholesky decomposition:\n");
     printf_matrix(matrix_size, matrix);
     printf("\ndiagonal:\n");
-    for (i = 0; i < matrix_size; i++) printf("%.1f ", diagonal[i]);
+    for (i = 0; i < matrix_size; i++) {
+      printf("%.1f ", diagonal[i]);
+    }
     printf("\n\n");
   }
 

@@ -159,13 +159,19 @@ int inverse_upper_triangle_block_and_diagonal(int n, double* a, double* d, doubl
   double *pa, *pbi, *pbj;
 
   memset(b, 0, n * n * sizeof(double));
-  for (i = 0; i < n; ++i) b[i * n + i] = d[i];
+  for (i = 0; i < n; ++i) {
+    b[i * n + i] = d[i];
+  }
 
   pbi = b + (n - 1) * n;
   for (i = n - 1; i >= 0; --i) {
-    if (fabs(a[i * n + i]) < EPS) return -1;
+    if (fabs(a[i * n + i]) < EPS) {
+      return -1;
+    }
     dt = 1.0 / a[i * n + i];
-    for (j = i; j < n; j++) pbi[j] *= dt;
+    for (j = i; j < n; j++) {
+      pbi[j] *= dt;
+    }
 
     pbj = b;
     pa = a;
@@ -186,7 +192,9 @@ int cholesky_for_block(int n, double* a, double* d) {
   int i, j, k;
   double *pai, *pak, dt;
 
-  for (i = 0; i < n; ++i) d[i] = 1.0;
+  for (i = 0; i < n; ++i) {
+    d[i] = 1.0;
+  }
 
   pai = a;
   for (i = 0; i < n; ++i) {
@@ -204,7 +212,9 @@ int cholesky_for_block(int n, double* a, double* d) {
     }
     pai[i] = sqrt(pai[i]);
 
-    if (fabs(pai[i]) < EPS) return -1;
+    if (fabs(pai[i]) < EPS) {
+      return -1;
+    }
 
     dt = 1.0 / pai[i];
     for (j = i + 1; j < n - 8; j += 8) {
@@ -228,9 +238,13 @@ int cholesky_for_block(int n, double* a, double* d) {
 // Inverts upper triangular scaled system for RHS vector.
 int inverse_upper_triangle_block_and_diagonal_rhs(int n, double* a, double* d, double* rhs) {
   int i, j;
-  for (i = 0; i < n; ++i) rhs[i] *= d[i];
+  for (i = 0; i < n; ++i) {
+    rhs[i] *= d[i];
+  }
   for (i = n - 1; i >= 0; --i) {
-    if (fabs(a[i * n + i]) < EPS) return -1;
+    if (fabs(a[i * n + i]) < EPS) {
+      return -1;
+    }
     rhs[i] *= 1.0 / a[i * n + i];
     for (j = 0; j < i; ++j) {
       rhs[j] -= rhs[i] * a[j * n + i];
@@ -243,7 +257,9 @@ int inverse_upper_triangle_block_and_diagonal_rhs(int n, double* a, double* d, d
 int inverse_lower_triangle_block_rhs(int n, double* a, double* rhs) {
   int i, j;
   for (i = 0; i < n; ++i) {
-    if (fabs(a[i * n + i]) < EPS) return -1;
+    if (fabs(a[i * n + i]) < EPS) {
+      return -1;
+    }
     rhs[i] *= 1.0 / a[i * n + i];
     for (j = i + 1; j < n; ++j) {
       rhs[j] -= rhs[i] * a[i * n + j];
@@ -283,7 +299,9 @@ int solve_lower_triangle_matrix_system(int matrix_size, double* matrix, double* 
   for (i = 0; i < matrix_size; i += block_size) {
     pii_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
     cpy_diagonal_block_to_block(matrix, i, matrix_size, pii_n, ma);
-    if (inverse_lower_triangle_block_rhs(pii_n, ma, rhs + i)) return -1;
+    if (inverse_lower_triangle_block_rhs(pii_n, ma, rhs + i)) {
+      return -1;
+    }
 
     for (j = i + block_size; j < matrix_size; j += block_size) {
       pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
@@ -303,7 +321,9 @@ int solve_upper_triangle_matrix_diagonal_system(int matrix_size, double* matrix,
   double* ma = workspace;
 
   residue = matrix_size - (matrix_size % block_size);
-  if (residue == matrix_size) residue -= block_size;
+  if (residue == matrix_size) {
+    residue -= block_size;
+  }
 
   for (i = residue; i >= 0; i -= block_size) {
     for (j = residue; j > i; j -= block_size) {
@@ -315,7 +335,9 @@ int solve_upper_triangle_matrix_diagonal_system(int matrix_size, double* matrix,
 
     pii_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
     cpy_diagonal_block_to_block(matrix, i, matrix_size, pii_n, ma);
-    if (inverse_upper_triangle_block_and_diagonal_rhs(pii_n, ma, diagonal + i, rhs + i)) return -1;
+    if (inverse_upper_triangle_block_and_diagonal_rhs(pii_n, ma, diagonal + i, rhs + i)) {
+      return -1;
+    }
   }
   return 0;
 }

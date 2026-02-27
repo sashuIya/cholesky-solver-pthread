@@ -2,5 +2,9 @@ BasedOnStyle: Google
 IndentWidth: 2
 ColumnLimit: 100
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+InsertBraces: true
 DerivePointerAlignment: false
 PointerAlignment: Left

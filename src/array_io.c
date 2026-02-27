@@ -10,7 +10,9 @@
 int fill_matrix(int n, double* matrix, double* vector_answer, double* rhs) {
   int i, j, k, t;
 
-  for (i = 0; i < n; ++i) rhs[i] = 0;
+  for (i = 0; i < n; ++i) {
+    rhs[i] = 0;
+  }
 
   for (i = 0; i < n; ++i) {
     // Index into packed upper triangular storage.
@@ -33,8 +35,11 @@ int fill_matrix(int n, double* matrix, double* vector_answer, double* rhs) {
 // Legacy routine for filling a standard 2D matrix.
 int stupid_fill_matrix(int n, double* matrix) {
   int i, j;
-  for (i = 0; i < n; ++i)
-    for (j = 0; j < n; ++j) matrix[i * n + j] = 1.0 / (i + j + 1.0);
+  for (i = 0; i < n; ++i) {
+    for (j = 0; j < n; ++j) {
+      matrix[i * n + j] = 1.0 / (i + j + 1.0);
+    }
+  }
   return 0;
 }
 
@@ -52,7 +57,9 @@ int read_matrix(int matrix_size, double** p_a, double* vector_answer, double* rh
     return -1;
   }
 
-  for (i = 0; i < matrix_size; ++i) rhs[i] = 0;
+  for (i = 0; i < matrix_size; ++i) {
+    rhs[i] = 0;
+  }
 
   for (i = 0; i < matrix_size; i++) {
     for (j = 0; j < i; ++j) {
@@ -92,12 +99,13 @@ int stupid_read_matrix(int matrix_size, double** p_a, char* input_file_name) {
   }
 
   for (i = 0; i < matrix_size; i++) {
-    for (j = 0; j < matrix_size; j++)
+    for (j = 0; j < matrix_size; j++) {
       if (fscanf(input_file, "%lf", matrix + i * matrix_size + j) != 1) {
         printf("Cannot read matrix from file\n");
         fclose(input_file);
         return -3;
       }
+    }
   }
 
   fclose(input_file);
@@ -108,11 +116,13 @@ int stupid_read_matrix(int matrix_size, double** p_a, char* input_file_name) {
 void printf_matrix(int n, double* matrix) {
   int i, j;
   for (i = 0; i < n; i++) {
-    for (j = 0; j < n; j++)
-      if (j >= i)
+    for (j = 0; j < n; j++) {
+      if (j >= i) {
         printf("%A ", matrix[n * i - (i * (i - 1)) / 2 + j - i]);
-      else
+      } else {
         printf("%A ", matrix[n * j - (j * (j - 1)) / 2 + i - j]);
+      }
+    }
     printf("\n");
   }
 }
@@ -121,7 +131,9 @@ void printf_matrix(int n, double* matrix) {
 void stupid_printf_matrix(int n, double* matrix) {
   int i, j;
   for (i = 0; i < n; i++) {
-    for (j = 0; j < n; j++) printf("%.3lf ", matrix[n * i + j]);
+    for (j = 0; j < n; j++) {
+      printf("%.3lf ", matrix[n * i + j]);
+    }
     printf("\n");
   }
 }
@@ -130,5 +142,7 @@ void stupid_printf_matrix(int n, double* matrix) {
 void fill_vector_answer(int n, double* vector_answer) {
   int i;
   memset(vector_answer, 0, n * sizeof(double));
-  for (i = 0; i < n; i += 2) vector_answer[i] = 1;
+  for (i = 0; i < n; i += 2) {
+    vector_answer[i] = 1;
+  }
 }

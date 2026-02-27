@@ -55,14 +55,17 @@ int cholesky(int matrix_size, double* matrix, double* diagonal, double* workspac
       pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
       pij_m = (j + block_size < matrix_size ? block_size : matrix_size - j);
 
-      if (j != i)
+      if (j != i) {
         cpy_matrix_block_to_block(matrix, i, j, matrix_size, pij_n, pij_m, mc);
-      else
+      } else {
         cpy_diagonal_block_to_block(matrix, i, matrix_size, pij_n, mc);
+      }
 
       k = 0;
       for (t = 0; t < i; t += block_size) {
-        if (k >= i) k = 0;
+        if (k >= i) {
+          k = 0;
+        }
 
         pki_n = (k + block_size < matrix_size ? block_size : matrix_size - k);
         pki_m = (i + block_size < matrix_size ? block_size : matrix_size - i);
@@ -76,10 +79,11 @@ int cholesky(int matrix_size, double* matrix, double* diagonal, double* workspac
         k += block_size;
       }
 
-      if (j != i)
+      if (j != i) {
         cpy_block_to_matrix_block(matrix, i, j, matrix_size, pij_n, pij_m, mc);
-      else
+      } else {
         cpy_block_to_diagonal_block(matrix, i, matrix_size, pij_n, mc);
+      }
     }
 
     pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
@@ -102,7 +106,9 @@ int cholesky(int matrix_size, double* matrix, double* diagonal, double* workspac
     }
 
     pthread_barrier_wait(barrier);
-    if (*error) return -1;
+    if (*error) {
+      return -1;
+    }
 
     // Copy the inverted diagonal block to thread-local storage for
     // multiplication.
