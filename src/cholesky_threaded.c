@@ -16,9 +16,8 @@ void* cholesky_threaded(void* ptr) {
   // Initial synchronization before starting computations.
   pthread_barrier_wait(pa->barrier);
 
-  cholesky(pa->matrix_size, pa->matrix, pa->diagonal, pa->workspace,
-           pa->block_size, pa->thread_id, pa->total_threads, pa->barrier,
-           pa->error);
+  cholesky(pa->matrix_size, pa->matrix, pa->diagonal, pa->workspace, pa->block_size, pa->thread_id,
+           pa->total_threads, pa->barrier, pa->error);
 
   // Report individual thread CPU time.
   printf("Thread %d CPU time: %.2lf\n", pa->thread_id,
@@ -35,9 +34,8 @@ void* cholesky_threaded(void* ptr) {
 // Each thread is responsible for updating a specific set of blocks in each
 // iteration of the outer loop. Barriers are used to ensure data consistency
 // between block updates and diagonal decomposition.
-int cholesky(int matrix_size, double* matrix, double* diagonal,
-             double* workspace, int block_size, int thread_id,
-             int total_threads, pthread_barrier_t* barrier, int* error) {
+int cholesky(int matrix_size, double* matrix, double* diagonal, double* workspace, int block_size,
+             int thread_id, int total_threads, pthread_barrier_t* barrier, int* error) {
   int i, j, k, t;
   int pij_n, pij_m;
   int pki_n, pki_m;
@@ -46,16 +44,14 @@ int cholesky(int matrix_size, double* matrix, double* diagonal,
   double *ma, *mb, *mc, *md, *me;
   me = workspace;
   // Each thread uses a private portion of the workspace for block operations.
-  ma = workspace + thread_id * 4 * block_size * block_size +
-       block_size * block_size;
+  ma = workspace + thread_id * 4 * block_size * block_size + block_size * block_size;
   mb = ma + block_size * block_size;
   mc = mb + block_size * block_size;
   md = mc + block_size * block_size;
 
   for (i = 0; i < matrix_size; i += block_size) {
     // Stage 1: Update blocks in the current row.
-    for (j = i + thread_id * block_size; j < matrix_size;
-         j += total_threads * block_size) {
+    for (j = i + thread_id * block_size; j < matrix_size; j += total_threads * block_size) {
       pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
       pij_m = (j + block_size < matrix_size ? block_size : matrix_size - j);
 
@@ -76,8 +72,7 @@ int cholesky(int matrix_size, double* matrix, double* diagonal,
         cpy_matrix_block_to_block(matrix, k, i, matrix_size, pki_n, pki_m, ma);
         cpy_matrix_block_to_block(matrix, k, j, matrix_size, pkj_n, pkj_m, mb);
 
-        main_blocks_diagonal_multiply(pki_n, pki_m, pkj_m, ma, mb, diagonal + k,
-                                      mc);
+        main_blocks_diagonal_multiply(pki_n, pki_m, pkj_m, ma, mb, diagonal + k, mc);
         k += block_size;
       }
 
@@ -100,8 +95,7 @@ int cholesky(int matrix_size, double* matrix, double* diagonal,
 
       cpy_block_to_diagonal_block(matrix, i, matrix_size, pij_n, mb);
 
-      if (!(*error) && inverse_upper_triangle_block_and_diagonal(
-                           pij_n, mb, diagonal + i, me)) {
+      if (!(*error) && inverse_upper_triangle_block_and_diagonal(pij_n, mb, diagonal + i, me)) {
         printf("Cholesky method with this block size cannot be applied\n");
         *error = 2;
       }

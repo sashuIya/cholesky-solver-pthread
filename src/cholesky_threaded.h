@@ -23,8 +23,7 @@ void* cholesky_threaded(void* ptr);
 //
 // Performs the decomposition in parallel by distributing block updates
 // across threads and synchronizing at critical stages.
-int cholesky(int matrix_size, double* matrix, double* diagonal,
-             double* workspace, int block_size, int thread_id,
-             int total_threads, pthread_barrier_t* barrier, int* error);
+int cholesky(int matrix_size, double* matrix, double* diagonal, double* workspace, int block_size,
+             int thread_id, int total_threads, pthread_barrier_t* barrier, int* error);
 
 #endif  // CHOLESKY_THREADED

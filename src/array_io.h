@@ -9,8 +9,8 @@ int fill_matrix(int n, double* matrix, double* vector_answer, double* rhs);
 int stupid_fill_matrix(int n, double* matrix);
 
 // Reads matrix elements from a file and generates the corresponding RHS.
-int read_matrix(int matrix_size, double** p_a, double* vector_answer,
-                double* rhs, char* input_file_name);
+int read_matrix(int matrix_size, double** p_a, double* vector_answer, double* rhs,
+                char* input_file_name);
 
 // Legacy/simple matrix reading routine.
 int stupid_read_matrix(int matrix_size, double** p_a, char* input_file_name);

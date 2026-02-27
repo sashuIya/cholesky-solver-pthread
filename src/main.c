@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
     else
       total_threads = atoi(argv[4]);
 
-    if (matrix_size <= 0 || block_size <= 0 || total_threads <= 0 ||
-        total_threads > 128 || block_size > matrix_size) {
+    if (matrix_size <= 0 || block_size <= 0 || total_threads <= 0 || total_threads > 128 ||
+        block_size > matrix_size) {
       printf("Wrong input parameters\n");
       return -1;
     }
@@ -54,8 +54,7 @@ int main(int argc, char* argv[]) {
     // Allocate a single large buffer for all matrix-related arrays to
     // maximize memory contiguousness.
     len = total_threads * WORKSPACE_MATRIX_COUNT * block_size * block_size +
-          2 * block_size * block_size +
-          ((matrix_size * (matrix_size + 1)) / 2) + 5 * matrix_size;
+          2 * block_size * block_size + ((matrix_size * (matrix_size + 1)) / 2) + 5 * matrix_size;
     len *= sizeof(double);
 
     if (!(matrix = (double*)malloc(len))) {
@@ -73,8 +72,7 @@ int main(int argc, char* argv[]) {
     rhs = exact_rhs + matrix_size;
     workspace = rhs + matrix_size;
 
-    if (!(cholesky_args =
-              (CholeskyArgs*)malloc(total_threads * sizeof(CholeskyArgs)))) {
+    if (!(cholesky_args = (CholeskyArgs*)malloc(total_threads * sizeof(CholeskyArgs)))) {
       printf("Not enough memory\n");
       free(matrix);
       return -2;
@@ -161,14 +159,13 @@ int main(int argc, char* argv[]) {
   print_full_time("on cholesky decomposition");
 
   // Solve the resulting triangular systems.
-  if (solve_lower_triangle_matrix_system(matrix_size, matrix, vector, workspace,
-                                         block_size)) {
+  if (solve_lower_triangle_matrix_system(matrix_size, matrix, vector, workspace, block_size)) {
     printf("Cannot solve R^T y = b part\n");
     goto cleanup;
   }
 
-  if (solve_upper_triangle_matrix_diagonal_system(
-          matrix_size, matrix, diagonal, vector, workspace, block_size)) {
+  if (solve_upper_triangle_matrix_diagonal_system(matrix_size, matrix, diagonal, vector, workspace,
+                                                  block_size)) {
     printf("Cannot solve D R x = y part\n");
     goto cleanup;
   }
@@ -197,8 +194,7 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < matrix_size; ++i) {
     residual += (exact_rhs[i] - rhs[i]) * (exact_rhs[i] - rhs[i]);
     rhs_norm += exact_rhs[i] * exact_rhs[i];
-    answer_error +=
-        (vector_answer[i] - vector[i]) * (vector_answer[i] - vector[i]);
+    answer_error += (vector_answer[i] - vector[i]) * (vector_answer[i] - vector[i]);
   }
 
   residual = sqrt(residual);
@@ -206,8 +202,8 @@ int main(int argc, char* argv[]) {
   answer_error = sqrt(answer_error);
 
   printf("\n");
-  printf("Error: %11.5le ; Residual: %11.5le (%11.5le)\n", answer_error,
-         residual, residual / rhs_norm);
+  printf("Error: %11.5le ; Residual: %11.5le (%11.5le)\n", answer_error, residual,
+         residual / rhs_norm);
   printf("Total time in seconds: %.2f\n", WallTimerGet() / 100.0);
   printf("CPU time in seconds: %.2f\n", TimerGet() / 100.0);
   printf("\n");

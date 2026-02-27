@@ -8,8 +8,7 @@
 const double EPS = 1e-16;
 
 // Copies an off-diagonal block from packed symmetric storage to a square block.
-inline void cpy_matrix_block_to_block(double* a, int row, int column,
-                                      int matrix_size, int n, int m,
+inline void cpy_matrix_block_to_block(double* a, int row, int column, int matrix_size, int n, int m,
                                       double* b) {
   int i, j, k;
   memset(b, 0, n * m * sizeof(double));
@@ -37,8 +36,7 @@ inline void cpy_matrix_block_to_block(double* a, int row, int column,
 }
 
 // Copies a square block back to an off-diagonal position in packed storage.
-inline void cpy_block_to_matrix_block(double* a, int row, int column,
-                                      int matrix_size, int n, int m,
+inline void cpy_block_to_matrix_block(double* a, int row, int column, int matrix_size, int n, int m,
                                       double* b) {
   int i, j, k;
   k = ((row * ((matrix_size << 1) - row + 1)) >> 1) + column - row;
@@ -63,8 +61,8 @@ inline void cpy_block_to_matrix_block(double* a, int row, int column,
 
 // High-performance block multiplication: C = C - A^T * D * B.
 // This is the core computational kernel of the block Cholesky method.
-inline void main_blocks_diagonal_multiply(int n, int m, int l, double* a,
-                                          double* b, double* d, double* c) {
+inline void main_blocks_diagonal_multiply(int n, int m, int l, double* a, double* b, double* d,
+                                          double* c) {
   int i, j, k;
   double *pa, *pb, *pc, pd, ta;
 
@@ -96,8 +94,7 @@ inline void main_blocks_diagonal_multiply(int n, int m, int l, double* a,
 }
 
 // Block multiplication: C = A * B.
-inline void main_blocks_multiply(int n, int m, int l, double* a, double* b,
-                                 double* c) {
+inline void main_blocks_multiply(int n, int m, int l, double* a, double* b, double* c) {
   int i, j, k;
   double *pa, *pb, *pc, ta;
 
@@ -129,8 +126,7 @@ inline void main_blocks_multiply(int n, int m, int l, double* a, double* b,
 }
 
 // Copies a diagonal block from packed storage to a square block.
-void cpy_diagonal_block_to_block(double* a, int t, int matrix_size, int m,
-                                 double* b) {
+void cpy_diagonal_block_to_block(double* a, int t, int matrix_size, int m, double* b) {
   int i, j, k;
   memset(b, 0, m * m * sizeof(double));
   k = ((t * ((matrix_size << 1) - t + 1)) >> 1);
@@ -144,8 +140,7 @@ void cpy_diagonal_block_to_block(double* a, int t, int matrix_size, int m,
 }
 
 // Copies a square block back to a diagonal position in packed storage.
-void cpy_block_to_diagonal_block(double* a, int t, int matrix_size, int m,
-                                 double* b) {
+void cpy_block_to_diagonal_block(double* a, int t, int matrix_size, int m, double* b) {
   int i, j, k;
   k = ((t * ((matrix_size << 1) - t + 1)) >> 1);
 
@@ -158,8 +153,7 @@ void cpy_block_to_diagonal_block(double* a, int t, int matrix_size, int m,
 }
 
 // Inverts an upper triangular block and scales it by the diagonal elements.
-int inverse_upper_triangle_block_and_diagonal(int n, double* a, double* d,
-                                              double* b) {
+int inverse_upper_triangle_block_and_diagonal(int n, double* a, double* d, double* b) {
   int i, j, k;
   double dt;
   double *pa, *pbi, *pbj;
@@ -232,8 +226,7 @@ int cholesky_for_block(int n, double* a, double* d) {
 }
 
 // Inverts upper triangular scaled system for RHS vector.
-int inverse_upper_triangle_block_and_diagonal_rhs(int n, double* a, double* d,
-                                                  double* rhs) {
+int inverse_upper_triangle_block_and_diagonal_rhs(int n, double* a, double* d, double* rhs) {
   int i, j;
   for (i = 0; i < n; ++i) rhs[i] *= d[i];
   for (i = n - 1; i >= 0; --i) {
@@ -260,8 +253,7 @@ int inverse_lower_triangle_block_rhs(int n, double* a, double* rhs) {
 }
 
 // Standard matrix-vector multiplication for a block.
-void matrix_block_vector_multiply(int n, int m, double* a, double* b,
-                                  double* c) {
+void matrix_block_vector_multiply(int n, int m, double* a, double* b, double* c) {
   int i, j;
   double* pai = a;
   for (i = 0; i < n; i++) {
@@ -273,8 +265,7 @@ void matrix_block_vector_multiply(int n, int m, double* a, double* b,
 }
 
 // Standard transposed matrix-vector multiplication for a block.
-void matrix_block_transposed_vector_multiply(int n, int m, double* a, double* b,
-                                             double* c) {
+void matrix_block_transposed_vector_multiply(int n, int m, double* a, double* b, double* c) {
   int i, j;
   for (i = 0; i < m; i++) {
     for (j = 0; j < n; j++) {
@@ -284,9 +275,8 @@ void matrix_block_transposed_vector_multiply(int n, int m, double* a, double* b,
 }
 
 // Solves the forward substitution step for the whole system.
-int solve_lower_triangle_matrix_system(int matrix_size, double* matrix,
-                                       double* rhs, double* workspace,
-                                       int block_size) {
+int solve_lower_triangle_matrix_system(int matrix_size, double* matrix, double* rhs,
+                                       double* workspace, int block_size) {
   int i, j, pii_n, pij_n, pij_m;
   double* ma = workspace;
 
@@ -299,18 +289,15 @@ int solve_lower_triangle_matrix_system(int matrix_size, double* matrix,
       pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
       pij_m = (j + block_size < matrix_size ? block_size : matrix_size - j);
       cpy_matrix_block_to_block(matrix, i, j, matrix_size, pij_n, pij_m, ma);
-      matrix_block_transposed_vector_multiply(pij_n, pij_m, ma, rhs + i,
-                                              rhs + j);
+      matrix_block_transposed_vector_multiply(pij_n, pij_m, ma, rhs + i, rhs + j);
     }
   }
   return 0;
 }
 
 // Solves the backward substitution step for the whole system.
-int solve_upper_triangle_matrix_diagonal_system(int matrix_size, double* matrix,
-                                                double* diagonal, double* rhs,
-                                                double* workspace,
-                                                int block_size) {
+int solve_upper_triangle_matrix_diagonal_system(int matrix_size, double* matrix, double* diagonal,
+                                                double* rhs, double* workspace, int block_size) {
   int i, j, pii_n, pij_n, pij_m;
   int residue;
   double* ma = workspace;
@@ -328,9 +315,7 @@ int solve_upper_triangle_matrix_diagonal_system(int matrix_size, double* matrix,
 
     pii_n = (i + block_size < matrix_size ? block_size : matrix_size - i);
     cpy_diagonal_block_to_block(matrix, i, matrix_size, pii_n, ma);
-    if (inverse_upper_triangle_block_and_diagonal_rhs(pii_n, ma, diagonal + i,
-                                                      rhs + i))
-      return -1;
+    if (inverse_upper_triangle_block_and_diagonal_rhs(pii_n, ma, diagonal + i, rhs + i)) return -1;
   }
   return 0;
 }

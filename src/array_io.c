@@ -39,8 +39,8 @@ int stupid_fill_matrix(int n, double* matrix) {
 }
 
 // Reads a symmetric matrix from a file and prepares the system for solving.
-int read_matrix(int matrix_size, double** p_a, double* vector_answer,
-                double* rhs, char* input_file_name) {
+int read_matrix(int matrix_size, double** p_a, double* vector_answer, double* rhs,
+                char* input_file_name) {
   int i, j, k;
   FILE* input_file;
   double* matrix = *p_a;
