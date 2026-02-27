@@ -1,0 +1,29 @@
+# Build artifacts
+build/
+src/*.o
+src/a
+*.a
+*.so
+*.out
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+baseline.json
+
+# Editors & IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation artifacts (LaTeX)
+doc/*.aux
+doc/*.log
+doc/*.dvi
+doc/*.ps
+doc/*.synctex.gz
+doc/*.pdf
