@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="Multi-threaded Block Cholesky Solver Logo" width="600">
+</p>
+
 # Multi-threaded Block Cholesky Solver
 
 A high-performance, multi-threaded solver for symmetric linear systems ($Ax = b$) using the Block Cholesky decomposition method. This project was originally developed in 2011 and has been modernized to follow contemporary C engineering standards.
