@@ -259,6 +259,7 @@ int main(int argc, char *argv[])
 
   printf("Error: %11.5le ; Residual: %11.5le (%11.5le)\n", answer_error, residual, residual / rhs_norm);
 
+  printf("Total time in seconds: %.2f\n", (TimerGet() - 0) / 100.0); // TimerGet is absolute from start of process approx
   printf("\n");
   free(matrix);
   free(cholesky_args);

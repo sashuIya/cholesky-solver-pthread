@@ -12,7 +12,7 @@ endif
 
 CC=gcc
 CFLAGS=-c -O3 
-LDFLAGS=-lm -lpthread
+LDFLAGS=-lm -lpthread -lrt
 SOURCES=main.c array_op.c timer.c array_io.c synchronize.c cholesky_threaded.c
 EXECUTABLE=a
 OBJS_NAMES=$(SOURCES:.c=.o)
@@ -32,3 +32,6 @@ $(EXECUTABLE): $(OBJS_NAMES)
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $(BUILD_DIR)/$@
+
+clean:
+	rm -rf $(BUILD_DIR)
