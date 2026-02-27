@@ -5,15 +5,15 @@
 
 // Arguments passed to each worker thread.
 typedef struct _CholeskyArgs {
-  int matrix_size;            // Total size of the matrix (N x N).
-  double* matrix;             // Pointer to the packed matrix data.
-  double* diagonal;           // Pointer to the diagonal scaling elements.
-  double* workspace;          // Thread-local or shared workspace buffers.
-  int block_size;             // Size of the computation blocks (M x M).
-  int thread_id;              // Unique ID for the current thread.
-  int total_threads;          // Total number of active threads.
-  pthread_barrier_t* barrier; // Synchronization barrier.
-  int* error;                 // Shared error flag for re-entrant reporting.
+  int matrix_size;             // Total size of the matrix (N x N).
+  double* matrix;              // Pointer to the packed matrix data.
+  double* diagonal;            // Pointer to the diagonal scaling elements.
+  double* workspace;           // Thread-local or shared workspace buffers.
+  int block_size;              // Size of the computation blocks (M x M).
+  int thread_id;               // Unique ID for the current thread.
+  int total_threads;           // Total number of active threads.
+  pthread_barrier_t* barrier;  // Synchronization barrier.
+  int* error;                  // Shared error flag for re-entrant reporting.
 } CholeskyArgs;
 
 // Entry point for pthread_create.

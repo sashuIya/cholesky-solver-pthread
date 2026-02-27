@@ -110,10 +110,12 @@ int cholesky(int matrix_size, double* matrix, double* diagonal,
     pthread_barrier_wait(barrier);
     if (*error) return -1;
 
-    // Copy the inverted diagonal block to thread-local storage for multiplication.
+    // Copy the inverted diagonal block to thread-local storage for
+    // multiplication.
     memcpy(md, me, pij_n * pij_n * sizeof(double));
 
-    // Stage 3: Update remaining off-diagonal blocks using the inverted diagonal.
+    // Stage 3: Update remaining off-diagonal blocks using the inverted
+    // diagonal.
     for (j = i + block_size + thread_id * block_size; j < matrix_size;
          j += total_threads * block_size) {
       pij_n = (i + block_size < matrix_size ? block_size : matrix_size - i);

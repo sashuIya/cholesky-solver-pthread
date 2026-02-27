@@ -79,9 +79,10 @@ void print_time(const char* message) {
   if (TimerStarted) {
     ConvertTime(t - StartTime, &summ);
     ConvertTime(t - PrevTime, &stage);
-    printf("Time: total = %2.2d:%2.2d:%2.2d.%2.2d, %s = %2.2d:%2.2d:%2.2d.%2.2d\n",
-           summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour,
-           stage.min, stage.sec, stage.tic);
+    printf(
+        "Time: total = %2.2d:%2.2d:%2.2d.%2.2d, %s = %2.2d:%2.2d:%2.2d.%2.2d\n",
+        summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour, stage.min,
+        stage.sec, stage.tic);
     PrevTime = t;
   } else {
     TimerStarted = 1;
@@ -112,10 +113,9 @@ void print_full_time(const char* message) {
         stage_full.tic);
     PrevFullTime = t_full;
 #else
-    printf(
-        "Time: total=%2.2d:%2.2d:%2.2d.%2.2d, %s=%2.2d:%2.2d:%2.2d.%2.2d\n",
-        summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour, stage.min,
-        stage.sec, stage.tic);
+    printf("Time: total=%2.2d:%2.2d:%2.2d.%2.2d, %s=%2.2d:%2.2d:%2.2d.%2.2d\n",
+           summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour,
+           stage.min, stage.sec, stage.tic);
 #endif
     PrevTime = t;
   } else {
@@ -137,9 +137,10 @@ long PrintTime(const char* message) {
   if (TimerStarted) {
     ConvertTime(t - StartTime, &summ);
     ConvertTime(res = t - PrevTime, &stage);
-    printf("Time: total = %2.2d:%2.2d:%2.2d.%2.2d, %s = %2.2d:%2.2d:%2.2d.%2.2d\n",
-           summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour,
-           stage.min, stage.sec, stage.tic);
+    printf(
+        "Time: total = %2.2d:%2.2d:%2.2d.%2.2d, %s = %2.2d:%2.2d:%2.2d.%2.2d\n",
+        summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour, stage.min,
+        stage.sec, stage.tic);
     PrevTime = t;
   } else {
     TimerStarted = 1;
@@ -171,9 +172,10 @@ long int PrintTimeT(const char* message, long int* pTotalTime) {
   if (TimerStarted) {
     ConvertTime(t - StartTime, &summ);
     ConvertTime(res = t - PrevTime, &stage);
-    printf("Time: total = %2.2d:%2.2d:%2.2d.%2.2d, %s = %2.2d:%2.2d:%2.2d.%2.2d\n",
-           summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour,
-           stage.min, stage.sec, stage.tic);
+    printf(
+        "Time: total = %2.2d:%2.2d:%2.2d.%2.2d, %s = %2.2d:%2.2d:%2.2d.%2.2d\n",
+        summ.hour, summ.min, summ.sec, summ.tic, message, stage.hour, stage.min,
+        stage.sec, stage.tic);
     PrevTime = t;
     *pTotalTime = t - StartTime;
   } else {

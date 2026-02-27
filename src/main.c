@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     // Allocate a single large buffer for all matrix-related arrays to
     // maximize memory contiguousness.
     len = total_threads * WORKSPACE_MATRIX_COUNT * block_size * block_size +
-          2 * block_size * block_size + ((matrix_size * (matrix_size + 1)) / 2) +
-          5 * matrix_size;
+          2 * block_size * block_size +
+          ((matrix_size * (matrix_size + 1)) / 2) + 5 * matrix_size;
     len *= sizeof(double);
 
     if (!(matrix = (double*)malloc(len))) {
