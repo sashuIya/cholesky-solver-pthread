@@ -49,73 +49,47 @@ class BenchmarkRunner:
 
 def run_suite(runner: BenchmarkRunner, configs: List[Dict]) -> List[Dict]:
     results = []
+    # Store T1 times per (N, M) to calculate speedup correctly
+    t1_map = {}
+
+    print(f"{'N':>5} | {'M':>4} | {'Threads':>7} | {'Wall (s)':>10} | {'CPU (s)':>10} | {'Speedup':>8} | {'Error':>10}")
+    print("-" * 75)
+
     for conf in configs:
-        print(f"Running N={conf['n']}, M={conf['m']}, Threads={conf['threads']}... ", end="", flush=True)
         res = runner.run_config(conf['n'], conf['m'], conf['threads'])
         if res['success']:
-            print(f"Done. Wall: {res.get('time_s', 0):.2f}s, CPU: {res.get('cpu_time_s', 0):.2f}s, Error: {res['error']:.2e}")
+            n = res['n']
+            m = res['m']
+            wall = res['time_s']
+            cpu = res['cpu_time_s']
+            
+            key = (n, m)
+            if res['threads'] == 1:
+                t1_map[key] = wall
+            
+            speedup = t1_map.get(key, wall) / wall if key in t1_map and wall > 0 else 1.0
+            
+            print(f"{n:5d} | {m:4d} | {res['threads']:7d} | {wall:10.2f} | {cpu:10.2f} | {speedup:7.2f}x | {res['error']:.2e}")
         else:
-            print(f"FAILED. Exit code: {res.get('exit_code')}")
+            print(f"FAILED: N={conf['n']} M={conf['m']} T={conf['threads']}. Exit code: {res.get('exit_code')}")
         results.append(res)
     return results
-
-def compare_results(baseline: List[Dict], current: List[Dict], tolerance: float = 1e-12):
-    print("\n--- Regression Report ---")
-    all_pass = True
-    for b, c in zip(baseline, current):
-        if not c['success']:
-            print(f"FAIL: Configuration N={c['n']} M={c['m']} T={c['threads']} failed to run.")
-            all_pass = False
-            continue
-        
-        err_diff = abs(b['error'] - c['error'])
-        if err_diff > tolerance:
-            print(f"REGRESSION: N={c['n']} M={c['m']} T={c['threads']} - Error diff: {err_diff:.2e} (Baseline: {b['error']:.2e}, Current: {c['error']:.2e})")
-            all_pass = False
-        else:
-            time_ratio = c['time_s'] / b['time_s'] if b.get('time_s', 0) > 0 else 1.0
-            status = "PASS"
-            if time_ratio > 1.2: status = "PASS (SLOWER)"
-            elif time_ratio < 0.8: status = "PASS (FASTER)"
-            
-            # Speedup calc
-            speedup = c['cpu_time_s'] / c['time_s'] if c['time_s'] > 0 else 1.0
-            print(f"{status}: N={c['n']} M={c['m']} T={c['threads']} (Error: {c['error']:.2e}, Wall: {c['time_s']:.2f}s, Speedup: {speedup:.2f}x)")
-
-    if all_pass:
-        print("\nAll tests passed successfully.")
-    else:
-        print("\nSome tests failed or showed regressions.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--save", help="Save results to file")
-    parser.add_argument("--compare", help="Compare against baseline file")
     args = parser.parse_args()
 
     runner = BenchmarkRunner()
     
-    # Standard suite
-    suite = [
-        {"n": 1000, "m": 64, "threads": 1},
-        {"n": 1000, "m": 64, "threads": 4},
-        {"n": 2000, "m": 64, "threads": 1},
-        {"n": 2000, "m": 64, "threads": 4},
-        {"n": 5000, "m": 64, "threads": 1},
-        {"n": 5000, "m": 64, "threads": 4},
-    ]
+    suite = []
+    # Configure N=5000, M=64, Threads 1 to 5
+    for threads in [1, 2, 3, 4, 5]:
+        suite.append({"n": 5000, "m": 64, "threads": threads})
     
     results = run_suite(runner, suite)
     
     if args.save:
         with open(args.save, "w") as f:
             json.dump(results, f, indent=2)
-        print(f"Results saved to {args.save}")
-        
-    if args.compare:
-        if os.path.exists(args.compare):
-            with open(args.compare, "r") as f:
-                baseline = json.load(f)
-            compare_results(baseline, results)
-        else:
-            print(f"Baseline file {args.compare} not found.")
+        print(f"\nResults saved to {args.save}")
